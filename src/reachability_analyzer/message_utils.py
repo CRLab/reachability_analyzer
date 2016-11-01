@@ -57,7 +57,7 @@ def fetch_positions_from_graspit_positions(positions):
     :returns a pair containing the joint names array & the joint positions
     :rtype (list[string],list[float])
     """
-    joint_positions = [positions[0], positions[0]]
+    joint_positions = [0.1, 0.1]
     joint_names = ['l_gripper_finger_joint', 'r_gripper_finger_joint']
     return joint_names, joint_positions
 

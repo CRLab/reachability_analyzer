@@ -7,5 +7,5 @@
 	<param name="planner_config_name" value="[PRMkConfigDefault]"/>
 
     
-	<node name="reachability_analyzer" pkg="reachability_analyzer" type="grasp_analyzer_node.py" />
+	<node name="reachability_analyzer" pkg="reachability_analyzer" type="grasp_analyzer_node.py" output="screen" />
 </launch>
