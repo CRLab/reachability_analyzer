@@ -52,7 +52,7 @@ def mico_positions_from_graspit_positions(positions):
 
 def fetch_positions_from_graspit_positions(positions):
     """
-    :param positions: Positions of the mico arm in graspit's conventions
+    :param positions: Positions of the fetch arm in graspit's conventions
     :type positions: numpy.array
     :returns a pair containing the joint names array & the joint positions
     :rtype (list[string],list[float])
@@ -358,3 +358,104 @@ def build_pickup_goal(moveit_grasp_msg, object_name, planning_group):
     #pickup_goal.path_constraints.joint_constraints = joint_constraints
 
     return pickup_goal
+
+
+def build_place_location():
+    moveit_place_location = moveit_msgs.msg.PlaceLocation()
+    # A name for this grasp
+    #string id
+    moveit_place_location.id = "placement_location"
+
+    # The internal posture of the hand for the grasp
+    # positions and efforts are used
+    #trajectory_msgs/JointTrajectory post_place_posture
+
+    # goal_point = trajectory_msgs.msg.JointTrajectoryPoint()
+    # joint_names, goal_point.positions = moveit_positions_from_graspit_positions_fcn(graspit_grasp_msg.pre_grasp_dof)
+    # moveit_grasp.grasp_posture.joint_names = joint_names
+    # moveit_grasp.grasp_posture.points.append(goal_point)
+
+    # The position of the end-effector for the grasp relative to a reference frame 
+    # (that is always specified elsewhere, not in this message)
+    #geometry_msgs/PoseStamped place_pose
+    place_pose = geometry_msgs.msg.PoseStamped()
+    place_pose.header.frame_id = "/world"
+    place_pose.pose.orientation.w = 1.0
+    place_pose.pose.position.y = -0.2
+    place_pose.pose.position.z = 0.03
+    moveit_place_location.place_pose = place_pose
+
+    # The approach motion
+    #GripperTranslation pre_place_approach
+
+    # The retreat motion
+    #GripperTranslation post_place_retreat
+    moveit_place_location.post_place_retreat.min_distance = .05
+    moveit_place_location.post_place_retreat.desired_distance = 2 * moveit_place_location.post_place_retreat.min_distance
+    moveit_place_location.post_place_retreat.direction.header.frame_id = '/world'
+    moveit_place_location.post_place_retreat.direction.vector = geometry_msgs.msg.Vector3(0, 0, 1)
+
+    # an optional list of obstacles that we have semantic information about
+    # and that can be touched/pushed/moved in the course of grasping
+    #string[] allowed_touch_objects
+    
+    return moveit_place_location
+
+def build_place_goal(place_location, object_name, planning_group):
+
+    place_goal = moveit_msgs.msg.PlaceGoal()
+
+    # An action for placing an object
+
+    # which group to be used to plan for grasping
+    #string group_name
+    place_goal.group_name = planning_group.get_name()
+
+    # the name that the attached object to place
+    #string attached_object_name
+
+    place_goal.attached_object_name = object_name
+
+    # a list of possible transformations for placing the object
+    #PlaceLocation[] place_locations
+    place_goal.place_locations = [place_location]
+
+    # if the user prefers setting the eef pose (same as in pick) rather than 
+    # the location of an end effector, this flag should be set to true
+    #bool place_eef
+    place_goal.place_eef = True
+
+    # the name that the support surface (e.g. table) has in the collision world
+    # can be left empty if no name is available
+    #string support_surface_name
+    place_goal.support_surface_name = "table"
+
+    # whether collisions between the gripper and the support surface should be acceptable
+    # during move from pre-place to place and during retreat. Collisions when moving to the
+    # pre-place location are still not allowed even if this is set to true.
+    #bool allow_gripper_support_collision
+    place_goal.allow_gripper_support_collision = True
+
+    # Optional constraints to be imposed on every point in the motion plan
+    #Constraints path_constraints
+
+    # The name of the motion planner to use. If no name is specified,
+    # a default motion planner will be used
+    #string planner_id
+
+    # an optional list of obstacles that we have semantic information about
+    # and that can be touched/pushed/moved in the course of grasping;
+    # CAREFUL: If the object name 'all' is used, collisions with all objects are disabled during the approach & lift.
+    #string[] allowed_touch_objects
+
+    # The maximum amount of time the motion planner is allowed to plan for
+    #float64 allowed_planning_time
+    place_goal.allowed_planning_time = rospy.get_param('~allowed_planning_time', 5)
+    # Planning options
+    #PlanningOptions planning_options
+    place_goal.planning_options.plan_only = True
+    place_goal.planning_options.replan = False
+    place_goal.planning_options.look_around = False
+    place_goal.planning_options.replan_delay = 10.0
+    return place_goal
+

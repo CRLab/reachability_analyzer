@@ -80,7 +80,7 @@ class GraspReachabilityAnalyzer():
             grasp_pose_stamped = pickup_goal.possible_grasps[0].grasp_pose
             self.publish_grasp_tf(grasp_pose_stamped, "grasp_moveit")
 
-            #publish where teh graspit grasp is
+            #publish where the graspit grasp is
             grasp_pose_stamped_1 = geometry_msgs.msg.PoseStamped()
             grasp_pose_stamped_1.header.frame_id= graspit_grasp_msg.object_name
             grasp_pose_stamped_1.pose = graspit_grasp_msg.final_grasp_pose
