@@ -50,6 +50,18 @@ def mico_positions_from_graspit_positions(positions):
     joint_names = ['mico_joint_finger_1', 'mico_joint_finger_2']
     return joint_names, joint_positions
 
+def pr2_positions_from_graspit_positions(positions):
+    """
+    :param positions: Positions of the pr2 arm in graspit's conventions
+    :type positions: numpy.array
+    :returns a pair containing the joint names array & the joint positions
+    :rtype (list[string],list[float])
+    """
+    joint_names = ['l_gripper_l_finger_joint', 'l_gripper_motor_slider_joint', 'l_gripper_motor_screw_joint', 'l_gripper_joint']
+    joint_positions = [0.1, 0.1, 0.1, 0.1]
+    return joint_names, joint_positions
+
+
 def fetch_positions_from_graspit_positions(positions):
     """
     :param positions: Positions of the mico arm in graspit's conventions
@@ -122,8 +134,9 @@ def graspit_grasp_to_moveit_grasp(graspit_grasp_msg, move_group_commander, liste
     # 'manipulator' is the name for the root move group in the mico arm
     moveit_positions_from_graspit_positions = {'StaubliArm': barrett_positions_from_graspit_positions,
                                                'manipulator': mico_positions_from_graspit_positions,
-                                               'arm': fetch_positions_from_graspit_positions}
-    move_group_name = rospy.get_param('/arm_name', 'arm')
+                                               'arm': fetch_positions_from_graspit_positions,
+                                               'left_arm': pr2_positions_from_graspit_positions}
+    move_group_name = rospy.get_param('/arm_name')
     moveit_positions_from_graspit_positions_fcn = moveit_positions_from_graspit_positions[move_group_name]
 
     moveit_grasp = moveit_msgs.msg.Grasp()
@@ -263,7 +276,7 @@ def build_pickup_goal(moveit_grasp_msg, object_name, planning_group):
     #
     # string end_effector
     #
-    pickup_goal.end_effector = rospy.get_param('end_effector_name', 'gripper')
+    pickup_goal.end_effector = rospy.get_param('end_effector_name')
 
     # # a list of possible grasps to be used. At least one grasp must be filled in
     #

@@ -1,11 +1,7 @@
 <launch>
-	<arg name="robot" default="fetch22" />
+	<arg name="robot"/>
 
-	<param name="analyze_grasp_topic" value="analyze_grasp_action"/>
-	<param name="move_group_name" value="arm"/>
-	<param name="grasp_approach_tran_frame" value="/approach_tran"/>
-	<param name="planner_config_name" value="[PRMkConfigDefault]"/>
-
+    <rosparam command="load" file="$(find reachability_analyzer)/configs/$(arg robot).yaml"/>
     
 	<node name="reachability_analyzer" pkg="reachability_analyzer" type="grasp_analyzer_node.py" output="screen" />
 </launch>
