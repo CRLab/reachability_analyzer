@@ -1,6 +1,7 @@
 --- 
 analyze_grasp_topic: analyze_grasp_action
 move_group_name: arm
+arm_name: arm
 grasp_approach_tran_frame: approach_tran
 planner_config_name: "[PRMkConfigDefault]"
 end_effector_name: gripper

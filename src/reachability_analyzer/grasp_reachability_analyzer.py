@@ -25,10 +25,10 @@ class GraspReachabilityAnalyzer():
         pose = pose_stamped.pose
         br = tf.TransformBroadcaster()
         br.sendTransform((pose.position.x, pose.position.y, pose.position.z),
-                     (pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w),
-                     rospy.Time.now(),
-                     frame_name,
-                     pose_stamped.header.frame_id)
+                         (pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w),
+                         rospy.Time.now(),
+                         frame_name,
+                         pose_stamped.header.frame_id)
 
     def send_pick_request(self, pickup_goal):
 
@@ -56,12 +56,12 @@ class GraspReachabilityAnalyzer():
         """
         # self.move_group.set_planning_time(rospy.get_param('~allowed_planning_time'))
 
-        moveit_grasp_msg = message_utils.graspit_grasp_to_moveit_grasp(graspit_grasp_msg,                                                                       
+        moveit_grasp_msg = message_utils.graspit_grasp_to_moveit_grasp(graspit_grasp_msg,
                                                                        self.move_group,
                                                                        self.listener,
                                                                        self.grasp_approach_tran_frame)
         rospy.loginfo("moveit_grasp_msg: " + str(moveit_grasp_msg))
-        
+
 
 
         pickup_goal = message_utils.build_pickup_goal(moveit_grasp_msg=moveit_grasp_msg,
@@ -98,3 +98,14 @@ class GraspReachabilityAnalyzer():
 
 
         return success, result
+
+    # TODO:
+    # Make sure to add graspit_grasp_msg as argument
+    def drop_off(self):
+        place_location = message_utils.build_place_location()
+        # WARNING: 'all' is a hardcoded object_name
+        message_utils.build_place_goal(place_location, "all", self.move_group)
+        return
+
+
+
