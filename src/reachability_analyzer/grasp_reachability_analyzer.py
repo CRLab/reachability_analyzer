@@ -16,6 +16,7 @@ class GraspReachabilityAnalyzer():
         :type move_group: moveit_commander.MoveGroupCommander
         """
         self.pick_plan_client = actionlib.SimpleActionClient('/pickup', moveit_msgs.msg.PickupAction)
+        self.place_plan_client = actionlib.SimpleActionClient('/place', moveit_msgs.msg.PlaceAction)
         self.move_group = move_group
         self.planner_id = planner_id
         self.grasp_approach_tran_frame = grasp_approach_tran_frame
@@ -99,13 +100,35 @@ class GraspReachabilityAnalyzer():
 
         return success, result
 
+    def send_place_request(self, place_goal):
+
+        success = False
+        received_result = False
+        self.place_plan_client.send_goal(place_goal)
+
+        received_result = self.place_plan_client.wait_for_result(rospy.Duration(rospy.get_param('~allowed_planning_time', 5)))
+
+        if received_result:
+            result = self.place_plan_client.get_result()
+            rospy.loginfo("result: " + str(result))
+            success = result.error_code.val == result.error_code.SUCCESS
+        else:
+            result = None
+            success = False
+
+        rospy.loginfo("success of place_plan_client:" + str(success))
+
+        return success, result
+
     # TODO:
     # Make sure to add graspit_grasp_msg as argument
-    def drop_off(self):
+    def get_place_plan(self):
         place_location = message_utils.build_place_location()
         # WARNING: 'all' is a hardcoded object_name
-        message_utils.build_place_goal(place_location, "all", self.move_group)
-        return
+        place_goal = message_utils.build_place_goal(place_location, "all", self.move_group)
+
+        success, result = self.send_place_request(place_goal)
+        return success, result
 
 
 

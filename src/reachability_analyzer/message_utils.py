@@ -397,7 +397,7 @@ def build_place_location():
     place_pose.pose.position.y = -0.2
     place_pose.pose.position.z = 0.03
     moveit_place_location.place_pose = place_pose
-
+    
     # The approach motion
     #GripperTranslation pre_place_approach
 
