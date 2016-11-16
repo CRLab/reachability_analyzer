@@ -79,22 +79,35 @@ class GraspReachabilityAnalyzer():
 
             #publish where the moveit grasp is
             grasp_pose_stamped = pickup_goal.possible_grasps[0].grasp_pose
-            self.publish_grasp_tf(grasp_pose_stamped, "grasp_moveit")
+            #self.publish_grasp_tf(grasp_pose_stamped, "grasp_moveit")
 
             #publish where the graspit grasp is
             grasp_pose_stamped_1 = geometry_msgs.msg.PoseStamped()
             grasp_pose_stamped_1.header.frame_id= graspit_grasp_msg.object_name
             grasp_pose_stamped_1.pose = graspit_grasp_msg.final_grasp_pose
-            self.publish_grasp_tf(grasp_pose_stamped_1, "grasp_graspit")
+            #self.publish_grasp_tf(grasp_pose_stamped_1, "grasp_graspit")
 
             #remove trajectory points for fingers because they are causing all reachability
             #checks to fail, this should be revisited at some point.
+            old_points = pickup_goal.possible_grasps[0].pre_grasp_posture.points
             pickup_goal.possible_grasps[0].pre_grasp_posture.points = []
             pickup_goal.possible_grasps[0].grasp_posture.points = []
-
+            
             success, result = self.send_pick_request(pickup_goal)
+            if success:
+                pickup_goal.possible_grasps[0].pre_grasp_posture.points = old_points
+                pickup_goal.possible_grasps[0].grasp_posture.points = old_points
+                pickup_goal.possible_grasps[0].pre_grasp_posture.points[0].effort = [50.0, 50.0]
+                pickup_goal.possible_grasps[0].pre_grasp_posture.points[0].time_from_start.secs = 2 
+                pickup_goal.possible_grasps[0].grasp_posture.points[0].effort = [50.0, 50.0]
+                pickup_goal.possible_grasps[0].grasp_posture.points[0].time_from_start.secs = 2
 
+                import IPython
+                IPython.embed()
+                
         except Exception as e:
+            import IPython
+            IPython.embed()
             rospy.logerr("failed to reach pick action server with err: %s" % e.message)
 
 
