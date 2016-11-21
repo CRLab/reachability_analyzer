@@ -136,7 +136,7 @@ def graspit_grasp_to_moveit_grasp(graspit_grasp_msg, move_group_commander, liste
                                                'manipulator': mico_positions_from_graspit_positions,
                                                'arm': fetch_positions_from_graspit_positions,
                                                'left_arm': pr2_positions_from_graspit_positions}
-    move_group_name = rospy.get_param('/arm_name')
+    move_group_name = rospy.get_param('/move_group_name')
     moveit_positions_from_graspit_positions_fcn = moveit_positions_from_graspit_positions[move_group_name]
 
     moveit_grasp = moveit_msgs.msg.Grasp()
