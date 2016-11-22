@@ -88,8 +88,8 @@ class GraspReachabilityAnalyzer():
 
             #remove trajectory points for fingers because they are causing all reachability
             #checks to fail, this should be revisited at some point.
-            pickup_goal.possible_grasps[0].pre_grasp_posture.points = []
-            pickup_goal.possible_grasps[0].grasp_posture.points = []
+            # pickup_goal.possible_grasps[0].pre_grasp_posture.points = []
+            # pickup_goal.possible_grasps[0].grasp_posture.points = []
 
             success, result = self.send_pick_request(pickup_goal)
 
