@@ -2,5 +2,6 @@
 analyze_grasp_topic: analyze_grasp_action
 move_group_name: arm
 grasp_approach_tran_frame: approach_tran
-planner_config_name: "[PRMkConfigDefault]"
+reachability_analyzer/planner_config_name: "[PRMkConfigDefault]"
 end_effector_name: gripper
+reachability_analyzer/allowed_planning_time: 15

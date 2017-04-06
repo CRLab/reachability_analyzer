@@ -401,7 +401,7 @@ def graspit_interface_grasp_to_moveit_grasp(grasp_id, object_name, graspit_inter
 
     return moveit_grasp
 
-def build_pickup_goal(moveit_grasp_msg, object_name, planning_group):
+def build_pickup_goal(moveit_grasp_msg, object_name, planning_group, allowed_planning_time):
     """
     :type planning_group: moveit_commander.MoveGroupCommander
     """
@@ -497,7 +497,7 @@ def build_pickup_goal(moveit_grasp_msg, object_name, planning_group):
     #
     # float64 allowed_planning_time
     #
-    pickup_goal.allowed_planning_time = rospy.get_param('~allowed_planning_time', 5)
+    pickup_goal.allowed_planning_time = allowed_planning_time
 
     # # Planning options
     #

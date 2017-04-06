@@ -11,7 +11,7 @@ import trajectory_msgs
 
 class GraspReachabilityAnalyzer():
 
-    def __init__(self, move_group, grasp_approach_tran_frame, planner_id):
+    def __init__(self, move_group, grasp_approach_tran_frame, planner_id, allowed_planning_time):
         """
         :type move_group: moveit_commander.MoveGroupCommander
         """
@@ -20,6 +20,8 @@ class GraspReachabilityAnalyzer():
         self.planner_id = planner_id
         self.grasp_approach_tran_frame = grasp_approach_tran_frame
         self.listener = tf.TransformListener()
+        self.allowed_planning_time = allowed_planning_time # this is how much time moveit thinks it has
+        self.planner_timeout = allowed_planning_time + 1 #this is how long we wait for a response from moveit
 
     def publish_grasp_tf(self, pose_stamped, frame_name):
         pose = pose_stamped.pose
@@ -36,7 +38,7 @@ class GraspReachabilityAnalyzer():
         received_result = False
         self.pick_plan_client.send_goal(pickup_goal)
 
-        received_result = self.pick_plan_client.wait_for_result(rospy.Duration(15))
+        received_result = self.pick_plan_client.wait_for_result(rospy.Duration(self.planner_timeout))
 
         if received_result:
             result = self.pick_plan_client.get_result()
@@ -66,6 +68,7 @@ class GraspReachabilityAnalyzer():
 
         pickup_goal = message_utils.build_pickup_goal(moveit_grasp_msg=moveit_grasp_msg,
                                                       object_name=graspit_grasp_msg.object_name,
+                                                      allowed_planning_time = self.allowed_planning_time,
                                                       planning_group=self.move_group)
 
 
