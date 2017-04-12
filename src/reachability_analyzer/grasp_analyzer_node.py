@@ -11,6 +11,8 @@ import sys
 import moveit_commander
 import actionlib
 
+import graspit_interface.msg
+
 
 class GraspAnalyzerNode(object):
 
@@ -26,10 +28,10 @@ class GraspAnalyzerNode(object):
 
         group = moveit_commander.MoveGroupCommander(move_group_name)
 
-        self.grasp_reachability_analyzer = GraspReachabilityAnalyzer(group, grasp_approach_tran_frame, planner_id, allowed_planning_time)
+        self.grasp_reachability_analyzer = GraspReachabilityAnalyzer(group, planner_id, allowed_planning_time)
 
         self._analyze_grasp_as = actionlib.SimpleActionServer(analyze_grasp_topic,
-                                                              graspit_msgs.msg.CheckGraspReachabilityAction,
+                                                              graspit_interface.msg.CheckGraspReachabilityAction,
                                                               execute_cb=self.analyze_grasp_reachability_cb,
                                                               auto_start=False)
         self._analyze_grasp_as.start()
