@@ -24,7 +24,7 @@ moveit_grasp.pre_grasp_approach.direction.header.frame_id: "/wrist_roll_link"
 
 moveit_grasp.post_grasp_retreat.min_distance: 0.05
 moveit_grasp.post_grasp_retreat.desired_distance: 0.1
-moveit_grasp.post_grasp_retreat.direction.header.frame_id: "/world"
+moveit_grasp.post_grasp_retreat.direction.header.frame_id: "/base_link"
 moveit_grasp.post_grasp_retreat.direction.vector.x: 0
 moveit_grasp.post_grasp_retreat.direction.vector.y: 0
 moveit_grasp.post_grasp_retreat.direction.vector.z: 1

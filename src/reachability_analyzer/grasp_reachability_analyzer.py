@@ -45,6 +45,7 @@ class GraspReachabilityAnalyzer():
     def query_moveit_for_reachability(self, graspit_grasp_msg):
 
         moveit_grasp_msg = message_utils.graspit_grasp_to_moveit_grasp(graspit_grasp_msg)
+
         
         pickup_goal = message_utils.build_pickup_goal(moveit_grasp_msg=moveit_grasp_msg,
                                                       object_name=graspit_grasp_msg.object_name,
@@ -59,6 +60,9 @@ class GraspReachabilityAnalyzer():
 
             rospy.loginfo("moveit_grasp_msg: " + str(moveit_grasp_msg))
             rospy.loginfo("pickup_goal: " + str(pickup_goal))
+
+            # import IPython
+            # IPython.embed()
 
             success, result = self.send_pick_request(pickup_goal)
 

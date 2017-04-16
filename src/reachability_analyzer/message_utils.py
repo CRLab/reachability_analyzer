@@ -118,7 +118,7 @@ def graspit_grasp_to_moveit_grasp(graspit_interface_grasp_msg):
     #
     # string[] allowed_touch_objects
     #
-    moveit_grasp.allowed_touch_objects = []
+    moveit_grasp.allowed_touch_objects = ["mesh"]
 
     return moveit_grasp
 
@@ -161,7 +161,7 @@ def build_pickup_goal(moveit_grasp_msg, object_name, allowed_planning_time,plann
     #
     # string support_surface_name
     #
-    pickup_goal.support_surface_name = "table"
+    # pickup_goal.support_surface_name = "table"
 
     # # whether collisions between the gripper and the support surface should be acceptable
     # # during move from pre-grasp to grasp and during lift. Collisions when moving to the
@@ -214,7 +214,7 @@ def build_pickup_goal(moveit_grasp_msg, object_name, allowed_planning_time,plann
     #
     # string[] allowed_touch_objects
     #
-    #pickup_goal.allowed_touch_objects = ['all']
+    pickup_goal.allowed_touch_objects = ['mesh']
 
     # # The maximum amount of time the motion planner is allowed to plan for
     #
