@@ -42,7 +42,8 @@ def graspit_grasp_to_moveit_grasp(graspit_interface_grasp_msg):
     pre_grasp_goal_point = trajectory_msgs.msg.JointTrajectoryPoint()
     pre_grasp_goal_point.effort = rospy.get_param("pre_grasp_goal_point.effort")
     pre_grasp_goal_point.positions = rospy.get_param("pre_grasp_goal_point.positions")
-    pre_grasp_goal_point.time_from_start.secs = rospy.get_param("pre_grasp_goal_point.time_from_start.secs") 
+    pre_grasp_goal_point.time_from_start.secs = rospy.get_param("pre_grasp_goal_point.time_from_start.secs")
+
 
     moveit_grasp.pre_grasp_posture.points.append(pre_grasp_goal_point)
     moveit_grasp.pre_grasp_posture.joint_names = rospy.get_param("pre_grasp_joint_names")
