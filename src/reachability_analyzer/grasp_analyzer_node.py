@@ -20,7 +20,7 @@ class GraspAnalyzerNode(object):
         rospy.init_node('grasp_analyzer_node')
         analyze_grasp_topic = rospy.get_param('analyze_grasp_topic')
         move_group_name = rospy.get_param('move_group_name')
-        grasp_approach_tran_frame = rospy.get_param('grasp_approach_tran_frame')
+        # grasp_approach_tran_frame = rospy.get_param('grasp_approach_tran_frame')
         planner_id = move_group_name + rospy.get_param('reachability_analyzer/planner_config_name')
         allowed_planning_time = rospy.get_param('reachability_analyzer/allowed_planning_time')
 
