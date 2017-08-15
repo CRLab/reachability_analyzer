@@ -1,16 +1,7 @@
 
-import tf_conversions.posemath as pm
-
 import moveit_msgs.msg
-import geometry_msgs.msg
 import trajectory_msgs.msg
-import moveit_commander
-import tf
 import rospy
-import tf_conversions
-import numpy as np
-import ipdb
-import math
 
 
 def graspit_interface_to_moveit_grasp(graspit_interface_grasp_msg):
@@ -54,7 +45,7 @@ def graspit_interface_to_moveit_grasp(graspit_interface_grasp_msg):
     #
     grasp_goal_point = trajectory_msgs.msg.JointTrajectoryPoint()
     grasp_goal_point.effort = rospy.get_param("grasp_goal_point.effort")
-    grasp_goal_point.positions = rospy.get_param("grasp_goal_point.positions")
+    grasp_goal_point.positions = graspit_interface_grasp_msg.dofs
     grasp_goal_point.time_from_start.secs = rospy.get_param("grasp_goal_point.time_from_start.secs")
 
     moveit_grasp.grasp_posture.points.append(grasp_goal_point)
