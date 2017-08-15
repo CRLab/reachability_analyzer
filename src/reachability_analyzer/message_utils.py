@@ -13,7 +13,7 @@ import ipdb
 import math
 
 
-def graspit_grasp_to_moveit_grasp(graspit_interface_grasp_msg):
+def graspit_interface_to_moveit_grasp(graspit_interface_grasp_msg):
     """
     :param graspit_interface_grasp_msg: A graspit_interface grasp message
     :type graspit_interface_grasp_msg: graspit_interface.msg.Grasp
@@ -43,7 +43,6 @@ def graspit_grasp_to_moveit_grasp(graspit_interface_grasp_msg):
     pre_grasp_goal_point.effort = rospy.get_param("pre_grasp_goal_point.effort")
     pre_grasp_goal_point.positions = rospy.get_param("pre_grasp_goal_point.positions")
     pre_grasp_goal_point.time_from_start.secs = rospy.get_param("pre_grasp_goal_point.time_from_start.secs")
-
 
     moveit_grasp.pre_grasp_posture.points.append(pre_grasp_goal_point)
     moveit_grasp.pre_grasp_posture.joint_names = rospy.get_param("pre_grasp_joint_names")
@@ -119,7 +118,7 @@ def graspit_grasp_to_moveit_grasp(graspit_interface_grasp_msg):
     #
     # string[] allowed_touch_objects
     #
-    moveit_grasp.allowed_touch_objects = ["mesh"]
+    moveit_grasp.allowed_touch_objects = []
 
     return moveit_grasp
 
@@ -177,18 +176,7 @@ def build_pickup_goal(moveit_grasp_msg, object_name, allowed_planning_time,plann
     #
     # string[] attached_object_touch_links
     #
-    # pickup_goal.attached_object_touch_links = ['barrett_mount_link', 'approach_tran', 'staubli_rx60l_link7',
-    #                                            'wam/bhand/bhand_palm_link',
-    #                                            'wrist_load_cell',
-    #                                             'wam/bhand/finger_1/dist_link',
-    #                                             'wam/bhand/finger_1/med_link',
-    #                                             'wam/bhand/finger_1/prox_link',
-    #                                             'wam/bhand/finger_2/dist_link',
-    #                                             'wam/bhand/finger_2/med_link',
-    #                                             'wam/bhand/finger_2/prox_link',
-    #                                             'wam/bhand/finger_3/dist_link',
-    #                                             'wam/bhand/finger_3/med_link',
-    #                                             'wam/bhand/finger_3/prox_link']
+    # pickup_goal.attached_object_touch_links = []
 
     # # Optionally notify the pick action that it should approach the object further,
     # # as much as possible (this minimizing the distance to the object before the grasp)
@@ -215,7 +203,7 @@ def build_pickup_goal(moveit_grasp_msg, object_name, allowed_planning_time,plann
     #
     # string[] allowed_touch_objects
     #
-    pickup_goal.allowed_touch_objects = ['mesh']
+    pickup_goal.allowed_touch_objects = ['all']
 
     # # The maximum amount of time the motion planner is allowed to plan for
     #

@@ -1,0 +1,4 @@
+graspit_interface/Grasp grasp
+---
+bool isReachable
+---
