@@ -1,0 +1,70 @@
+<launch>
+    <arg name="analyze_grasp_topic" default="analyze_grasp_action" />
+    <arg name="arm_move_group_name" default="StaubliArm" />
+    <arg name="hand_move_group_name" default="BarrettHand" />
+    <arg name="end_effector_name" default="BarrettHand" />
+
+    <arg name="planner_config_name" default="[PRMkConfigDefault]" />
+    <arg name="allowed_planning_time" default="15" />
+
+    <arg name="pre_grasp_goal_point.time_from_start.secs" default="0" />
+
+    <arg name="grasp_goal_point.effort" default="[50,50]" />
+    <arg name="grasp_goal_point.time_from_start.secs" default="0" />
+
+    <arg name="moveit_grasp.pre_grasp_approach.min_distance" default="0.05" />
+    <arg name="moveit_grasp.pre_grasp_approach.desired_distance" default="0.1" />
+    <arg name="moveit_grasp.pre_grasp_approach.direction.header.frame_id" default="/wrist_roll_link" />
+    <arg name="moveit_grasp.pre_grasp_approach.direction.vector.x" default="0" />
+    <arg name="moveit_grasp.pre_grasp_approach.direction.vector.y" default="0" />
+    <arg name="moveit_grasp.pre_grasp_approach.direction.vector.z" default="1" />
+
+    <arg name="moveit_grasp.post_grasp_retreat.min_distance" default="0.05" />
+    <arg name="moveit_grasp.post_grasp_retreat.desired_distance" default="0.1" />
+    <arg name="moveit_grasp.post_grasp_retreat.direction.header.frame_id" default="/base_link" />
+    <arg name="moveit_grasp.post_grasp_retreat.direction.vector.x" default="0" />
+    <arg name="moveit_grasp.post_grasp_retreat.direction.vector.y" default="0" />
+    <arg name="moveit_grasp.post_grasp_retreat.direction.vector.z" default="1" />
+    <arg name="moveit_grasp.max_contact_force" default="-1" />
+
+    <!--GraspIt grasp come in relation to the approach tran (grey arrow in graspit) -->
+    <!--This transform defines where the approach tran exists relative to the actual robot -->
+    <arg name="approach_tran_base_frame" default="/bh_base_link" />
+    <arg name="approach_tran" default="0.0 0.0 0.09 0 0 0" />
+
+
+     <node name="reachability_analyzer" pkg="reachability_analyzer" type="grasp_analyzer_node.py">
+        <param name="analyze_grasp_topic" value="$(arg analyze_grasp_topic)" />
+    	<param name="arm_move_group_name" value="$(arg arm_move_group_name)" />
+    	<param name="hand_move_group_name" value="$(arg hand_move_group_name)" />
+    	<param name="end_effector_name" value="$(arg end_effector_name)" />
+
+    	<param name="planner_config_name" value="$(arg planner_config_name)" />
+    	<param name="allowed_planning_time" value="$(arg allowed_planning_time)" />
+
+	    <param name="pre_grasp_goal_point.time_from_start.secs" value="$(arg pre_grasp_goal_point.time_from_start.secs)" />
+
+    	<param name="grasp_goal_point.effort" value="$(arg grasp_goal_point.effort)" />
+    	<param name="grasp_goal_point.time_from_start.secs" value="$(arg grasp_goal_point.time_from_start.secs)" />
+
+    	<param name="moveit_grasp.pre_grasp_approach.min_distance" value="$(arg moveit_grasp.pre_grasp_approach.min_distance)" />
+    	<param name="moveit_grasp.pre_grasp_approach.desired_distance" value="$(arg moveit_grasp.pre_grasp_approach.desired_distance)" />
+    	<param name="moveit_grasp.pre_grasp_approach.direction.header.frame_id" value="$(arg moveit_grasp.pre_grasp_approach.direction.header.frame_id)" />
+    	<param name="moveit_grasp.pre_grasp_approach.direction.vector.x" value="$(arg moveit_grasp.pre_grasp_approach.direction.vector.x)" />
+    	<param name="moveit_grasp.pre_grasp_approach.direction.vector.y" value="$(arg moveit_grasp.pre_grasp_approach.direction.vector.y)" />
+    	<param name="moveit_grasp.pre_grasp_approach.direction.vector.z" value="$(arg moveit_grasp.pre_grasp_approach.direction.vector.z)" />
+
+    	<param name="moveit_grasp.post_grasp_retreat.min_distance" value="$(arg moveit_grasp.post_grasp_retreat.min_distance)" />
+    	<param name="moveit_grasp.post_grasp_retreat.desired_distance" value="$(arg moveit_grasp.post_grasp_retreat.desired_distance)" />
+    	<param name="moveit_grasp.post_grasp_retreat.direction.header.frame_id" value="$(arg moveit_grasp.post_grasp_retreat.direction.header.frame_id)" />
+    	<param name="moveit_grasp.post_grasp_retreat.direction.vector.x" value="$(arg moveit_grasp.post_grasp_retreat.direction.vector.x)" />
+    	<param name="moveit_grasp.post_grasp_retreat.direction.vector.y" value="$(arg moveit_grasp.post_grasp_retreat.direction.vector.y)" />
+    	<param name="moveit_grasp.post_grasp_retreat.direction.vector.z" value="$(arg moveit_grasp.post_grasp_retreat.direction.vector.z)" />
+    	<param name="moveit_grasp.max_contact_force" value="$(arg moveit_grasp.max_contact_force)" />
+     </node>
+
+
+     <node pkg="tf" type="static_transform_publisher" name="static_tf_hand_to_approach"  args="$(arg approach_tran) $(arg approach_tran_base_frame) /approach\
+ 10" />
+
+</launch>

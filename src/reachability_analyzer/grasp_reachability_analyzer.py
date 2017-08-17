@@ -10,15 +10,17 @@ import trajectory_msgs
 
 
 class GraspReachabilityAnalyzer():
-    def __init__(self, move_group, planner_id, allowed_planning_time):
+    def __init__(self, ns, arm_group, hand_group, planner_id, allowed_planning_time):
         """
-        :type move_group: moveit_commander.MoveGroupCommander
+        :type arm_group: moveit_commander.MoveGroupCommander
         :type planner_id: str
         :type allowed_planning_time: int
         """
+        self.ns = ns
         self.pick_plan_client = actionlib.SimpleActionClient(
             '/pickup', moveit_msgs.msg.PickupAction)
-        self.move_group = move_group
+        self.arm_group = arm_group
+        self.hand_group = hand_group
         self.planner_id = planner_id
         # this is how much time moveit thinks it has
         self.allowed_planning_time = allowed_planning_time
@@ -44,20 +46,30 @@ class GraspReachabilityAnalyzer():
 
         return success, result
 
-    def query_moveit_for_reachability(self, graspit_grasp_msg):
+    def query_moveit_for_reachability(self, graspit_grasp_msg, grasp_frame_id):
         """
         type: graspit_grasp_msg: graspit_interface.msg.Grasp
         """
 
+        self.hand_group.set_named_target("pregrasp")
+        pregrasp_joint_values = self.hand_group.get_current_joint_values()
+        joint_names = self.hand_group.get_active_joints()
+
         moveit_grasp_msg = message_utils.graspit_interface_to_moveit_grasp(
-            graspit_grasp_msg)
+            self.arm_group,
+            self.ns,
+            graspit_grasp_msg,
+            grasp_frame_id,
+            joint_names,
+            pregrasp_joint_values)
 
         pickup_goal = message_utils.build_pickup_goal(
+            self.ns,
             moveit_grasp_msg=moveit_grasp_msg,
-            object_name=graspit_grasp_msg.object_name,
+            object_name="depth_only_completion_0",
             allowed_planning_time=self.allowed_planning_time,
             planner_id=self.planner_id,
-            planning_group=self.move_group)
+            planning_group=self.arm_group)
 
         success = False
         result = None
@@ -66,6 +78,9 @@ class GraspReachabilityAnalyzer():
 
             rospy.loginfo("moveit_grasp_msg: " + str(moveit_grasp_msg))
             rospy.loginfo("pickup_goal: " + str(pickup_goal))
+
+            # import IPython
+            # IPython.embed()
 
             success, result = self._send_pick_request(pickup_goal)
 

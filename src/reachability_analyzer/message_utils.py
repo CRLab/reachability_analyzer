@@ -2,9 +2,71 @@
 import moveit_msgs.msg
 import trajectory_msgs.msg
 import rospy
+import tf_conversions
+import tf
+import numpy as np
+import geometry_msgs.msg
 
 
-def graspit_interface_to_moveit_grasp(graspit_interface_grasp_msg):
+def param(ns, name):
+    full_param_name = rospy.search_param('/' + ns + '/' + name)
+    if not full_param_name:
+        raise Exception("Parameter Not Found: " + str(name))
+    return rospy.get_param(full_param_name)
+
+
+def graspit_grasp_pose_to_moveit_grasp_pose(arm_move_group_commander, graspit_grasp_msg,
+                                            grasp_frame='/approach_tran'):
+    """
+    :param arm_move_group_commander: A move_group command from which to get the end effector link.
+    :type arm_move_group_commander: moveit_commander.MoveGroupCommander
+    :param graspit_grasp_msg: A graspit grasp message
+    :type graspit_grasp_msg: graspit_interface.msg.Grasp
+    """
+
+    listener = tf.TransformListener()
+
+    try:
+        listener.waitForTransform(grasp_frame, arm_move_group_commander.get_end_effector_link(),
+                                     rospy.Time(0), timeout=rospy.Duration(1))
+        at_to_ee_tran, at_to_ee_rot = listener.lookupTransform(grasp_frame, arm_move_group_commander.get_end_effector_link(),rospy.Time())
+    except Exception as e:
+        rospy.logerr("graspit_grasp_pose_to_moveit_grasp_pose::\n " +
+                    "Failed to find transform from %s to %s"%(grasp_frame, arm_move_group_commander.get_end_effector_link()))
+
+    graspit_grasp_msg_final_grasp_tran_matrix = tf_conversions.toMatrix(tf_conversions.fromMsg(graspit_grasp_msg.pose))
+    approach_tran_to_end_effector_tran_matrix = tf.TransformerROS().fromTranslationRotation(at_to_ee_tran, at_to_ee_rot)
+    actual_ee_pose_matrix = np.dot( graspit_grasp_msg_final_grasp_tran_matrix, approach_tran_to_end_effector_tran_matrix)
+    actual_ee_pose = tf_conversions.toMsg(tf_conversions.fromMatrix(actual_ee_pose_matrix))
+    rospy.loginfo("actual_ee_pose: " + str(actual_ee_pose))
+    return actual_ee_pose
+
+
+def get_approach_dir_in_ee_coords(arm_move_group_commander, approach_dir_stamped):
+    """
+    :type arm_move_group_commander: moveit_commander.MoveGroupCommander
+    :type approach_dir_stamped: geometry_msgs.msg.Vector3Stamped
+    :rtype geometry_msgs.msg.Vector3Stamped
+    """
+    listener = tf.TransformListener()
+
+    try:
+        listener.waitForTransform(approach_dir_stamped.header.frame_id, arm_move_group_commander.get_end_effector_link(),
+                                     rospy.Time(), timeout=rospy.Duration(2))
+        listener.lookupTransform(approach_dir_stamped.header.frame_id, arm_move_group_commander.get_end_effector_link(),rospy.Time())
+    except:
+        rospy.logerr("Failed to find transform from %s to %s"%(approach_dir_stamped.header.frame_id, arm_move_group_commander.get_end_effector_link()))
+
+    approach_dir_transformed = listener.transformVector3(arm_move_group_commander.get_end_effector_link(), approach_dir_stamped)
+    return approach_dir_transformed
+
+
+def graspit_interface_to_moveit_grasp(arm_move_group,
+                                      ns,
+                                      graspit_interface_grasp_msg,
+                                      grasp_frame_id,
+                                      joint_names,
+                                      pregrasp_joint_values):
     """
     :param graspit_interface_grasp_msg: A graspit_interface grasp message
     :type graspit_interface_grasp_msg: graspit_interface.msg.Grasp
@@ -30,13 +92,13 @@ def graspit_interface_to_moveit_grasp(graspit_interface_grasp_msg):
     #
     # trajectory_msgs/JointTrajectory pre_grasp_posture
     #
+
     pre_grasp_goal_point = trajectory_msgs.msg.JointTrajectoryPoint()
-    pre_grasp_goal_point.effort = rospy.get_param("pre_grasp_goal_point.effort")
-    pre_grasp_goal_point.positions = rospy.get_param("pre_grasp_goal_point.positions")
-    pre_grasp_goal_point.time_from_start.secs = rospy.get_param("pre_grasp_goal_point.time_from_start.secs")
+    pre_grasp_goal_point.positions = pregrasp_joint_values
+    pre_grasp_goal_point.time_from_start.secs = param(ns, "pre_grasp_goal_point.time_from_start.secs")
 
     moveit_grasp.pre_grasp_posture.points.append(pre_grasp_goal_point)
-    moveit_grasp.pre_grasp_posture.joint_names = rospy.get_param("pre_grasp_joint_names")
+    moveit_grasp.pre_grasp_posture.joint_names = joint_names
 
     # # The internal posture of the hand for the grasp
     # # positions and efforts are used
@@ -44,12 +106,12 @@ def graspit_interface_to_moveit_grasp(graspit_interface_grasp_msg):
     # trajectory_msgs/JointTrajectory grasp_posture
     #
     grasp_goal_point = trajectory_msgs.msg.JointTrajectoryPoint()
-    grasp_goal_point.effort = rospy.get_param("grasp_goal_point.effort")
+    grasp_goal_point.effort = [param(ns, "grasp_goal_point.effort"), ]*len(pregrasp_joint_values)
     grasp_goal_point.positions = graspit_interface_grasp_msg.dofs
-    grasp_goal_point.time_from_start.secs = rospy.get_param("grasp_goal_point.time_from_start.secs")
+    grasp_goal_point.time_from_start.secs = param(ns, "grasp_goal_point.time_from_start.secs")
 
     moveit_grasp.grasp_posture.points.append(grasp_goal_point)
-    moveit_grasp.grasp_posture.joint_names = rospy.get_param("moveit_grasp.grasp_posture.joint_names")
+    moveit_grasp.grasp_posture.joint_names = joint_names
 
     # # The position of the end-effector for the grasp.  This is the pose of
     # # the "parent_link" of the end-effector, not actually the pose of any
@@ -58,8 +120,9 @@ def graspit_interface_to_moveit_grasp(graspit_interface_grasp_msg):
     #
     # geometry_msgs/PoseStamped grasp_pose
     #
-    moveit_grasp.grasp_pose.pose = graspit_interface_grasp_msg.pose
-    moveit_grasp.grasp_pose.header.frame_id = graspit_interface_grasp_msg.object_name
+    ee_pose = graspit_grasp_pose_to_moveit_grasp_pose(arm_move_group, graspit_interface_grasp_msg, "/approach_tran")
+    moveit_grasp.grasp_pose.pose = ee_pose
+    moveit_grasp.grasp_pose.header.frame_id = grasp_frame_id
 
     # # The estimated probability of success for this grasp, or some other
     # # measure of how "good" it is.
@@ -72,22 +135,26 @@ def graspit_interface_to_moveit_grasp(graspit_interface_grasp_msg):
     #
     # GripperTranslation pre_grasp_approach
     #
-    moveit_grasp.pre_grasp_approach.min_distance = rospy.get_param("moveit_grasp.pre_grasp_approach.min_distance")
-    moveit_grasp.pre_grasp_approach.desired_distance = rospy.get_param("moveit_grasp.pre_grasp_approach.desired_distance")
-    moveit_grasp.pre_grasp_approach.direction.header.frame_id = rospy.get_param("moveit_grasp.pre_grasp_approach.direction.header.frame_id")
-    moveit_grasp.pre_grasp_approach.direction.vector = graspit_interface_grasp_msg.approach_direction.vector
+    moveit_grasp.pre_grasp_approach.min_distance = param(ns, "moveit_grasp.pre_grasp_approach.min_distance")
+    moveit_grasp.pre_grasp_approach.desired_distance = param(ns, "moveit_grasp.pre_grasp_approach.desired_distance")
 
+    approach_dir = geometry_msgs.msg.Vector3Stamped()
+    approach_dir.vector.x = param(ns, "moveit_grasp.pre_grasp_approach.direction.vector.x")
+    approach_dir.vector.y = param(ns, "moveit_grasp.pre_grasp_approach.direction.vector.y")
+    approach_dir.vector.z = param(ns, "moveit_grasp.pre_grasp_approach.direction.vector.z")
+    approach_dir.header.frame_id = param(ns, "moveit_grasp.pre_grasp_approach.direction.header.frame_id")
+    moveit_grasp.pre_grasp_approach.direction = get_approach_dir_in_ee_coords(arm_move_group, approach_dir)
 
     # # The retreat direction to take after a grasp has been completed (object is attached)
     #
     # GripperTranslation post_grasp_retreat
     #
-    moveit_grasp.post_grasp_retreat.min_distance = rospy.get_param("moveit_grasp.post_grasp_retreat.min_distance")
-    moveit_grasp.post_grasp_retreat.desired_distance = rospy.get_param("moveit_grasp.post_grasp_retreat.desired_distance")
-    moveit_grasp.post_grasp_retreat.direction.header.frame_id = rospy.get_param("moveit_grasp.post_grasp_retreat.direction.header.frame_id")
-    moveit_grasp.post_grasp_retreat.direction.vector.x = rospy.get_param("moveit_grasp.post_grasp_retreat.direction.vector.x")
-    moveit_grasp.post_grasp_retreat.direction.vector.y = rospy.get_param("moveit_grasp.post_grasp_retreat.direction.vector.y")
-    moveit_grasp.post_grasp_retreat.direction.vector.z = rospy.get_param("moveit_grasp.post_grasp_retreat.direction.vector.z")
+    moveit_grasp.post_grasp_retreat.min_distance = param(ns, "moveit_grasp.post_grasp_retreat.min_distance")
+    moveit_grasp.post_grasp_retreat.desired_distance = param(ns, "moveit_grasp.post_grasp_retreat.desired_distance")
+    moveit_grasp.post_grasp_retreat.direction.header.frame_id = param(ns, "moveit_grasp.post_grasp_retreat.direction.header.frame_id")
+    moveit_grasp.post_grasp_retreat.direction.vector.x = param(ns, "moveit_grasp.post_grasp_retreat.direction.vector.x")
+    moveit_grasp.post_grasp_retreat.direction.vector.y = param(ns, "moveit_grasp.post_grasp_retreat.direction.vector.y")
+    moveit_grasp.post_grasp_retreat.direction.vector.z = param(ns, "moveit_grasp.post_grasp_retreat.direction.vector.z")
 
     # # The retreat motion to perform when releasing the object; this information
     # # is not necessary for the grasp itself, but when releasing the object,
@@ -102,7 +169,7 @@ def graspit_interface_to_moveit_grasp(graspit_interface_grasp_msg):
     #
     # float32 max_contact_force
     #
-    moveit_grasp.max_contact_force = rospy.get_param("moveit_grasp.max_contact_force")
+    moveit_grasp.max_contact_force = param(ns, "moveit_grasp.max_contact_force")
 
     # # an optional list of obstacles that we have semantic information about
     # # and that can be touched/pushed/moved in the course of grasping
@@ -114,7 +181,7 @@ def graspit_interface_to_moveit_grasp(graspit_interface_grasp_msg):
     return moveit_grasp
 
 
-def build_pickup_goal(moveit_grasp_msg, object_name, allowed_planning_time,planner_id, planning_group):
+def build_pickup_goal(ns, moveit_grasp_msg, object_name, allowed_planning_time,planner_id, planning_group):
     """
     :type planning_group: moveit_commander.MoveGroupCommander
     """
@@ -139,7 +206,7 @@ def build_pickup_goal(moveit_grasp_msg, object_name, allowed_planning_time,plann
     #
     # string end_effector
     #
-    pickup_goal.end_effector = rospy.get_param('end_effector_name')
+    pickup_goal.end_effector = param(ns, 'end_effector_name')
 
     # # a list of possible grasps to be used. At least one grasp must be filled in
     #

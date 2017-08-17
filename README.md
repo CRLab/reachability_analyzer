@@ -37,7 +37,7 @@ The following parameters are used to convert a graspit_interface grasp message i
 
     <param name="moveit_grasp.max_contact_force" value="-1" />
 
-    <node name="reachability_analyzer" pkg="reachability_analyzer" type="grasp_analyzer_node"/>
+    <node name="reachability_analyzer" pkg="reachability_analyzer" type="grasp_analyzer_node.py"/>
   </group>
 </launch>
 
