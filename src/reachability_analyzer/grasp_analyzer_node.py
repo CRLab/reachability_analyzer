@@ -45,10 +45,11 @@ class GraspAnalyzerNode(object):
         @rtype: bool
         """
         success, result = self.grasp_reachability_analyzer.query_moveit_for_reachability(
-            goal.grasp)
+            goal.grasp,
+            goal.object_name)
         _result = reachability_analyzer.msg.CheckGraspReachabilityResult()
-        _result.isPossible = success
-        _result.grasp_id = goal.grasp.grasp_id
+        _result.isReachable = success
+        # _result.grasp_id = goal.grasp.grasp_id
         rospy.loginfo(self.__class__.__name__ +
                       " finished analyze grasp request: " + str(_result))
         self._analyze_grasp_as.set_succeeded(_result)

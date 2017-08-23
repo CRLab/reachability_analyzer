@@ -4,7 +4,7 @@ import trajectory_msgs.msg
 import rospy
 
 
-def graspit_interface_to_moveit_grasp(graspit_interface_grasp_msg):
+def graspit_interface_to_moveit_grasp(graspit_interface_grasp_msg, grasp_frame_id):
     """
     :param graspit_interface_grasp_msg: A graspit_interface grasp message
     :type graspit_interface_grasp_msg: graspit_interface.msg.Grasp
@@ -59,7 +59,7 @@ def graspit_interface_to_moveit_grasp(graspit_interface_grasp_msg):
     # geometry_msgs/PoseStamped grasp_pose
     #
     moveit_grasp.grasp_pose.pose = graspit_interface_grasp_msg.pose
-    moveit_grasp.grasp_pose.header.frame_id = graspit_interface_grasp_msg.object_name
+    moveit_grasp.grasp_pose.header.frame_id = grasp_frame_id
 
     # # The estimated probability of success for this grasp, or some other
     # # measure of how "good" it is.

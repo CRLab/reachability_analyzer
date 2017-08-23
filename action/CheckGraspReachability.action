@@ -1,4 +1,5 @@
 graspit_interface/Grasp grasp
+string object_name
 ---
 bool isReachable
 ---

@@ -44,17 +44,17 @@ class GraspReachabilityAnalyzer():
 
         return success, result
 
-    def query_moveit_for_reachability(self, graspit_grasp_msg):
+    def query_moveit_for_reachability(self, graspit_grasp_msg, object_name):
         """
         type: graspit_grasp_msg: graspit_interface.msg.Grasp
         """
 
         moveit_grasp_msg = message_utils.graspit_interface_to_moveit_grasp(
-            graspit_grasp_msg)
+            graspit_grasp_msg, object_name)
 
         pickup_goal = message_utils.build_pickup_goal(
             moveit_grasp_msg=moveit_grasp_msg,
-            object_name=graspit_grasp_msg.object_name,
+            object_name=object_name,
             allowed_planning_time=self.allowed_planning_time,
             planner_id=self.planner_id,
             planning_group=self.move_group)
