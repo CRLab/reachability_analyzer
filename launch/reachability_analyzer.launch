@@ -1,7 +1,0 @@
-<launch>
-	<arg name="robot"/>
-
-    <rosparam command="load" file="$(find reachability_analyzer)/configs/$(arg robot).yaml"/>
-    
-	<node name="reachability_analyzer" pkg="reachability_analyzer" type="grasp_analyzer_node.py" output="screen" />
-</launch>
