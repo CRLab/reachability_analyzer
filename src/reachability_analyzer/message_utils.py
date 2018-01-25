@@ -1,7 +1,11 @@
 
+import geometry_msgs.msg
 import moveit_msgs.msg
 import trajectory_msgs.msg
 import rospy
+import tf
+import tf_conversions
+import numpy as np
 
 
 def graspit_interface_to_moveit_grasp(graspit_interface_grasp_msg, grasp_frame_id):
@@ -224,3 +228,28 @@ def build_pickup_goal(moveit_grasp_msg, object_name, allowed_planning_time,plann
     #pickup_goal.path_constraints.joint_constraints = joint_constraints
 
     return pickup_goal
+
+
+def transform_graspit_grasp_pose_to_new_reference_frame(
+        graspit_grasp_msg_pose,  # type: geometry_msgs.msg.Pose
+        source_in_target_translation_rotation,  # type: tuple of tuples
+):
+    # type: (...) -> geometry_msgs.msg.Pose
+    """
+    :param source_in_target_translation_rotation: result of listener.lookupTransform((target_frame, grasp_frame, rospy.Time(0), timeout=rospy.Duration(1))
+    :param graspit_grasp_msg: A graspit grasp message
+    t_T_G = t_T_s * s_T_G
+    """
+
+    graspit_grasp_pose_in_source_frame_matrix = tf_conversions.toMatrix(
+        tf_conversions.fromMsg(graspit_grasp_msg_pose)
+    )
+
+    source_in_target_frame_tran_matrix = tf.TransformerROS().fromTranslationRotation(source_in_target_translation_rotation[0],
+                                                                                     source_in_target_translation_rotation[1])
+    graspit_grasp_pose_in_target_frame_matrix = np.dot(source_in_target_frame_tran_matrix,
+                                                       graspit_grasp_pose_in_source_frame_matrix)  # t_T_G = t_T_s * s_T_G
+    graspit_grasp_pose_in_target_frame = tf_conversions.toMsg(
+        tf_conversions.fromMatrix(graspit_grasp_pose_in_target_frame_matrix))
+
+    return graspit_grasp_pose_in_target_frame
