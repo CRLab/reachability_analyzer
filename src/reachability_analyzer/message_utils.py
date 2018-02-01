@@ -230,14 +230,14 @@ def build_pickup_goal(moveit_grasp_msg, object_name, allowed_planning_time,plann
     return pickup_goal
 
 
-def transform_graspit_grasp_pose_to_new_reference_frame(
+def get_graspit_grasp_pose_in_new_reference_frame(
         graspit_grasp_msg_pose,  # type: geometry_msgs.msg.Pose
-        source_in_target_translation_rotation,  # type: tuple of tuples
+        target_to_source_translation_rotation,  # type: tuple of tuples
 ):
     # type: (...) -> geometry_msgs.msg.Pose
     """
-    :param source_in_target_translation_rotation: result of listener.lookupTransform((target_frame, grasp_frame, rospy.Time(0), timeout=rospy.Duration(1))
-    :param graspit_grasp_msg: A graspit grasp message
+    :param target_to_source_translation_rotation: result of listener.lookupTransform((target_frame, grasp_frame, rospy.Time(0), timeout=rospy.Duration(1))
+    :param graspit_grasp_msg_pose: The pose of a graspit grasp message i.e. g.pose
     t_T_G = t_T_s * s_T_G
     """
 
@@ -245,11 +245,55 @@ def transform_graspit_grasp_pose_to_new_reference_frame(
         tf_conversions.fromMsg(graspit_grasp_msg_pose)
     )
 
-    source_in_target_frame_tran_matrix = tf.TransformerROS().fromTranslationRotation(source_in_target_translation_rotation[0],
-                                                                                     source_in_target_translation_rotation[1])
+    source_in_target_frame_tran_matrix = tf.TransformerROS().fromTranslationRotation(
+        target_to_source_translation_rotation[0],
+        target_to_source_translation_rotation[1])
     graspit_grasp_pose_in_target_frame_matrix = np.dot(source_in_target_frame_tran_matrix,
                                                        graspit_grasp_pose_in_source_frame_matrix)  # t_T_G = t_T_s * s_T_G
     graspit_grasp_pose_in_target_frame = tf_conversions.toMsg(
         tf_conversions.fromMatrix(graspit_grasp_pose_in_target_frame_matrix))
 
     return graspit_grasp_pose_in_target_frame
+
+
+def change_end_effector_link(
+        graspit_grasp_msg_pose,  # type: geometry_msgs.msg.Pose
+        old_link_to_new_link_translation_rotation,  # type: tuple of tuples
+):
+    # type: (...) -> geometry_msgs.msg.Pose
+    """
+    :param old_link_to_new_link_translation_rotation: result of listener.lookupTransform((old_link, new_link, rospy.Time(0), timeout=rospy.Duration(1))
+    :param graspit_grasp_msg_pose: The pose of a graspit grasp message i.e. g.pose
+    ref_T_nl = ref_T_ol * ol_T_nl
+    """
+
+    graspit_grasp_pose_for_old_link_matrix = tf_conversions.toMatrix(
+        tf_conversions.fromMsg(graspit_grasp_msg_pose)
+    )
+
+    old_link_to_new_link_tranform_matrix = tf.TransformerROS().fromTranslationRotation(
+        old_link_to_new_link_translation_rotation[0],
+        old_link_to_new_link_translation_rotation[1])
+    graspit_grasp_pose_for_new_link_matrix = np.dot(graspit_grasp_pose_for_old_link_matrix,
+                                                    old_link_to_new_link_tranform_matrix)  # ref_T_nl = ref_T_ol * ol_T_nl
+    graspit_grasp_pose_for_new_link = tf_conversions.toMsg(
+        tf_conversions.fromMatrix(graspit_grasp_pose_for_new_link_matrix))
+
+    return graspit_grasp_pose_for_new_link
+
+
+def graspit_grasp_pose_to_moveit_grasp_pose(grasp_pose_in_world,
+                                            object_to_world_translation_rotation,
+                                            old_ee_to_new_ee_translation_rotation):
+    graspit_grasp_pose_in_object_frame = get_graspit_grasp_pose_in_new_reference_frame(
+        grasp_pose_in_world,
+        object_to_world_translation_rotation,
+    )
+
+    graspit_grasp_pose_for_new_link = change_end_effector_link(
+        graspit_grasp_pose_in_object_frame,
+        old_ee_to_new_ee_translation_rotation,
+    )
+
+    return graspit_grasp_pose_for_new_link
+
