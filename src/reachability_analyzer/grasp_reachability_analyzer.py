@@ -90,8 +90,8 @@ class GraspReachabilityAnalyzer():
 
 
         service_request = PositionIKRequest()
-        service_request.group_name = "arm"
-        service_request.ik_link_name = "wrist_roll_link"
+        service_request.group_name = self.move_group.get_name()
+        service_request.ik_link_name = self.move_group.get_end_effector_link()
         service_request.pose_stamped = moveit_grasp_msg.grasp_pose
         service_request.timeout.secs= self.allowed_planning_time
         service_request.avoid_collisions = True
